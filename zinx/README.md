@@ -83,10 +83,16 @@ ZinxV0.4全局配置
             3、写Message的内容
         -针对Message进行TLV格式的拆包：func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error)
             1、先读取固定长度的head-->消息内容的长度和消息的类型
-            2、再根据消息内容的长度，再进行一次读写，从conn中读取消息的内容    
-       
-      
-                                                             
+            2、再根据消息内容的长度，再进行一次读写，从conn中读取消息的内容
+    --将消息封装机制集成到Zinx框架中：
+        1、将Message添加到Request属性中
+        2、修改链接读取数据的机制，将之前的单纯的读取byte改成拆包形式的读取按照TLV形式读取
+    --使用ZinxV0.5开发
+
+11.17
+多路由模式
+
+
    看20集 
      
  

@@ -21,7 +21,7 @@ func main()  {
 	}
 	for{
 		//2、连接调用Write写数据
-		_, err := conn.Write([]byte("Hello Zinx V0.2..."))
+		_, err := conn.Write([]byte("Hello Zinx V0.4..."))
 		if nil!=err{
 			fmt.Println("write conn err",err)
 			return
@@ -37,5 +37,4 @@ func main()  {
 		time.Sleep(1*time.Second)
 	}
 
-	//
 }
