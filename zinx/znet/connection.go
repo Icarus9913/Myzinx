@@ -12,21 +12,22 @@ import (
 	连接模块
 */
 type Connection struct {
-	Conn     *net.TCPConn   //当前连接的socketTCP套接字
-	ConnID   uint32         //连接的ID
-	isClosed bool           //当前的连接状态
-	ExitChan chan bool      //告知当前连接已经退出的/停止 channel
-	Router   ziface.IRouter //该链接处理的方法Router
+	Conn       *net.TCPConn      //当前连接的socketTCP套接字
+	ConnID     uint32            //连接的ID
+	isClosed   bool              //当前的连接状态
+	ExitChan   chan bool         //告知当前连接已经退出的/停止 channel
+	MsgHandler ziface.IMsgHandle //消息的管理MsgID和对应的处理业务API关系
+
 }
 
 //初始化连接模块的方法
-func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msghandle ziface.IMsgHandle) *Connection {
 	c := &Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		isClosed: false,
-		ExitChan: make(chan bool, 1),
-		Router:   router,
+		Conn:       conn,
+		ConnID:     connID,
+		isClosed:   false,
+		ExitChan:   make(chan bool, 1),
+		MsgHandler: msghandle,
 	}
 	return c
 }
@@ -49,46 +50,39 @@ func (c *Connection) StartReader() {
 		dp := NewDataPack()
 
 		//读取客户端Msg Head 二进制流 8个字节
-		headData := make([]byte,dp.GetHeadLen())
-		if _, err := io.ReadFull(c.GetTCPConnection(), headData);nil!=err{
-			fmt.Println("read msg error",err)
+		headData := make([]byte, dp.GetHeadLen())
+		if _, err := io.ReadFull(c.GetTCPConnection(), headData); nil != err {
+			fmt.Println("read msg error", err)
 			break
 		}
 
 		//拆包，得到msgID和msgDataLen放在msg消息中
-		msg,err := dp.Unpack(headData)
-		if nil!=err{
-			fmt.Println("unpack error",err)
+		msg, err := dp.Unpack(headData)
+		if nil != err {
+			fmt.Println("unpack error", err)
 			break
 		}
 		//根据dataLen 再次读取Data，放在msg.Data中
 		var data []byte
-		if msg.GetMsgLen() >0{
-			data=make([]byte,msg.GetMsgLen())
-			if _, err := io.ReadFull(c.GetTCPConnection(), data);nil!=err{
-				fmt.Println("read msg data error:",err)
+		if msg.GetMsgLen() > 0 {
+			data = make([]byte, msg.GetMsgLen())
+			if _, err := io.ReadFull(c.GetTCPConnection(), data); nil != err {
+				fmt.Println("read msg data error:", err)
 				break
 			}
 		}
 		msg.SetData(data)
 
-
 		//得到当前conn数据的Request请求数据
 		req := Request{
 			conn: c,
-			msg: msg,
+			msg:  msg,
 		}
-		//执行注册的路由方法
-		go func(request ziface.IRequest) {
-			c.Router.PreHandle(request)
-			c.Router.Handle(request)
-			c.Router.PostHandle(request)
-		}(&req)
 		//从路由中，找到注册绑定的conn对应的router调用
+		//根据绑定好的MsgID找到对应处理api业务 执行
+		go c.MsgHandler.DoMsgHandler(&req)
 	}
 }
-
-
 
 //启动连接，让当前的连接准备开始工作
 func (c *Connection) Start() {
@@ -128,21 +122,21 @@ func (c *Connection) RemoteAddr() net.Addr {
 }
 
 //提供一个SendMsg方法，将我们要发送给客户端的数据，先进行封包，再发送
-func (c *Connection) SendMsg(msgId uint32,data []byte) error{
-	if c.isClosed == true{
+func (c *Connection) SendMsg(msgId uint32, data []byte) error {
+	if c.isClosed == true {
 		return errors.New("Connection closed when send msg")
 	}
 	//将data进行封包 MsgDataLen| MsgID| Data
 	dp := NewDataPack()
 	//MsgDataLen|MsgID|Data
 	binaryMsg, err := dp.Pack(NewMsgPackage(msgId, data))
-	if nil!=err{
-		fmt.Println("Pack error msg id=",msgId)
+	if nil != err {
+		fmt.Println("Pack error msg id=", msgId)
 		return errors.New("Pack error msg")
 	}
 	//将数据发送给客户端
-	if _, err := c.Conn.Write(binaryMsg);nil!=err{
-		fmt.Println("Write msg id",msgId,"error:",err)
+	if _, err := c.Conn.Write(binaryMsg); nil != err {
+		fmt.Println("Write msg id", msgId, "error:", err)
 		return errors.New("conn Write error")
 	}
 	return nil

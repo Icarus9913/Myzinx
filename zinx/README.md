@@ -91,8 +91,19 @@ ZinxV0.4全局配置
 
 11.17
 多路由模式
+    --消息管理模块(支持多路由业务api调度管理)--MsgHandler
+        -属性：
+            1、集合-消息ID和对应的router的关系-map -->Apis map[uint32] ziface.IRouter
+        -方法：
+            1、根据msgID来索引调度路由方法-->func (mh *MsgHandle)DoMsgHandler(request ziface.IRequest)
+            2、添加路由方法到map集合中-->func (mh *MsgHandle)AddRouter(msgID uint32, router ziface.IRouter)
+    --消息管理模块集成到Zinx框架中:
+        1、将server模块中的Router属性替换成MsgHandler属性
+        2、将server之前的AddRouter修改，调用MsgHandler的AddRouter-->AddRouter(msgID uint32, router IRouter)
+        3、将connection模块Router属性 替换成MsgHandler， 修改初始化Connection方法
+        4、Connection的之前调度Router的业务替换成MsgHandler调度，修改StartReader方法
+    --使用ZinxV0.6开发
 
-
-   看20集 
+   看29集
      
  

@@ -9,21 +9,20 @@ import (
 
 //iServer的接口实现，定义一个Server的服务器模块
 type Server struct {
-	Name      string         //服务器的名称
-	IPVersion string         //服务器绑定的ip版本
-	IP        string         //服务器监听的IP
-	Port      int            //服务器监听的端口
-	Router    ziface.IRouter //当前的Server添加一个router，server注册的连接对应的处理业务
+	Name       string            //服务器的名称
+	IPVersion  string            //服务器绑定的ip版本
+	IP         string            //服务器监听的IP
+	Port       int               //服务器监听的端口
+	MsgHandler ziface.IMsgHandle //当前server的消息管理模块，用来绑定MsgID和对应的处理业务API关系
+
 }
-
-
 
 //启动服务器
 func (s *Server) Start() {
 	fmt.Printf("[Zinx] Server Name: %s,listener at IP:%s, Port:%d is starting\n",
-		utils.GlobalObject.Name,utils.GlobalObject.Host,utils.GlobalObject.TcpPort)
+		utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TcpPort)
 	fmt.Printf("[Zinx] Version:%s, MaxConn:%d, MaxPackageSize:%d\n",
-		utils.GlobalObject.Version,utils.GlobalObject.MaxConn,utils.GlobalObject.MaxPackageSize)
+		utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
 
 	go func() {
 		//1.获取一个TCP的Addr
@@ -50,7 +49,7 @@ func (s *Server) Start() {
 				continue
 			}
 			//将处理新链接的业务方法和conn进行绑定，得到我们的连接模块
-			dealConn := NewConnection(conn, cid, s.Router)
+			dealConn := NewConnection(conn, cid, s.MsgHandler)
 			cid++
 			//启动当前的连接业务处理
 			go dealConn.Start()
@@ -76,8 +75,8 @@ func (s *Server) Serve() {
 }
 
 //路由功能：给当前的服务注册一个路由方法，供客户端的连接处理使用
-func (s *Server) AddRouter(router ziface.IRouter) {
-	s.Router=router
+func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+	s.MsgHandler.AddRouter(msgID,router)
 	fmt.Println("Add Router success!")
 }
 
@@ -90,7 +89,7 @@ func NewServer(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        utils.GlobalObject.Host,
 		Port:      utils.GlobalObject.TcpPort,
-		Router: nil,
+		MsgHandler:    NewMsgHandle(),
 	}
 	return s
 }
