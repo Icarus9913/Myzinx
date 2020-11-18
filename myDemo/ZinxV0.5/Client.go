@@ -36,7 +36,6 @@ func main() {
 		//服务器就应该给我们回复一个message数据，MsgID:1 pingpingping
 
 		//1、先读取流中的head部分 得到ID和DataLen
-
 		binaryHead := make([]byte, dp.GetHeadLen())
 		if _, err := io.ReadFull(conn, binaryHead); nil != err {
 			fmt.Println("read head error:", err)

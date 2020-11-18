@@ -9,8 +9,7 @@ import (
 )
 
 //封包，拆包的具体模块
-type DataPack struct {
-}
+type DataPack struct {}
 
 //拆包封包实例的一个初始化方法
 func NewDataPack() *DataPack {

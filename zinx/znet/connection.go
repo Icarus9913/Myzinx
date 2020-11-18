@@ -80,9 +80,7 @@ func (c *Connection) StartReader() {
 		}
 		//执行注册的路由方法
 		go func(request ziface.IRequest) {
-			c.Router.PreHandle(request)
 			c.Router.Handle(request)
-			c.Router.PostHandle(request)
 		}(&req)
 		//从路由中，找到注册绑定的conn对应的router调用
 	}
