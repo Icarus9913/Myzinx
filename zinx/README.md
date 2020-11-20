@@ -112,13 +112,32 @@ ZinxV0.4全局配置
     --启动Reader和Writer一同工作
     --使用ZinxV0.7开发
 
+11.20
+消息队列及多任务
+    --消息队列及Worker工作池实现
+        --1、创建一个消息队列:
+            --MsgHandler消息管理模块
+                -属性：
+                    1)消息队列--TaskQueue []chan ziface.IRequest
+                    2)worker工作池的数量(WorkerPoolSize uint32)--->在全局配置的参数中获取，也可以在配置文件中让用户设置
+        --2、创建多任务worker的工作池并且启动-->创建一个worker的工作池func (mh *MsgHandle) StartWorkerPool():
+                                        1)根据workerPoolSize的数量去创建Worker--func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest)
+                                        2)每个worker都应该用一个Go去承载
+                                            -1、阻塞的等待与当前worker对应的channel的消息
+                                            -2、一旦有消息到来，worker应该处理当前消息对应的业务，调用DoMsgHandler()
+        --3、将之前的发送消息，全部改成 把消息发送给 消息队列和worker工作池来处理
+            --定义一个方法，将消息发送给消息队列工作池的方法-->func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest)：
+                1、保证每个worker所收到的request任务是均衡(平均分配)，让哪个worker去处理，只需要将这个request请求发送给对应的taskQueue即可
+                2、将消息直接发送给对应的channel
+    --将消息队列机制集成到Zinx框架中
+        --1、开启并调用消息队列及Worker工作池-->保证WorkerPool只有一个，应该在创建Server模块的时候开启(在server listen之前添加)
+        --2、将从客户端处理的消息，发送给当前的Worker工作池来处理-->在已经处理完拆包，得到了request请求，交给工作池来处理
+    --使用ZinxV0.8开发
 
 
 
 
 
-
-
-   看29集
+   看38集
      
  
