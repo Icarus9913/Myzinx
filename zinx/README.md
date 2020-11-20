@@ -104,6 +104,21 @@ ZinxV0.4全局配置
         4、Connection的之前调度Router的业务替换成MsgHandler调度，修改StartReader方法
     --使用ZinxV0.6开发
 
+11.20
+读写协程分离
+    --添加一个Reader和Writer之间通信的channel
+    --添加一个Writer goroutine
+    --Reader 由之前直接发送给客户端 改成 发送给通信channel
+    --启动Reader和Writer一同工作
+    --使用ZinxV0.7开发
+
+
+
+
+
+
+
+
    看29集
      
  
