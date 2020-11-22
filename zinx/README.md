@@ -134,6 +134,22 @@ ZinxV0.4全局配置
         --2、将从客户端处理的消息，发送给当前的Worker工作池来处理-->在已经处理完拆包，得到了request请求，交给工作池来处理
     --使用ZinxV0.8开发
 
+11.22
+连接管理
+    --创建一个连接管理模块(定义、属性、方法)
+        --ConnManager
+            -属性：
+                1)已经创建的Connection集合map-->connections map[uint32] ziface.IConnection
+                2)针对map的互斥锁-->connLock    sync.RWMutex
+            -方法：
+                1)添加链接-->func (connMgr *ConnManager) Add(conn ziface.IConnection)
+                2)删除链接-->func (connMgr *ConnManager) Remove(conn ziface.IConnection)
+                3)根据连接ID查找对应的连接-->func (connMgr *ConnManager) Get(connID uint32) (ziface.IConnection, error)
+                4)总连接个数-->func (connMgr *ConnManager) Len() int
+                5)清理全部的连接-->func (connMgr *ConnManager) ClearConn()
+    --将连接管理模块集成到Zinx框架中
+    --给Zinx框架提供 创建连接之后/销毁连接之前 所要处理的一些业务 提供给用户能够注册Hook函数
+    --使用ZinxV0.9开发
 
 
 
