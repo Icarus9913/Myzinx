@@ -7,24 +7,27 @@ import (
 	"fmt"
 	"io"
 	"net"
+
 )
 
 /*
 	连接模块
 */
 type Connection struct {
-	Conn       *net.TCPConn      //当前连接的socketTCP套接字
-	ConnID     uint32            //连接的ID
-	isClosed   bool              //当前的连接状态
-	ExitChan   chan bool         //告知当前连接已经退出的/停止 channel(油Reader告知Writer退出)
-	msgChan    chan []byte       //无缓冲管道，用于读、写goroutine之间的消息通信
-	MsgHandler ziface.IMsgHandle //消息的管理MsgID和对应的处理业务API关系
+	TcpServer    ziface.IServer         //当前Conn隶属于哪个Server
+	Conn         *net.TCPConn           //当前连接的socketTCP套接字
+	ConnID       uint32                 //连接的ID
+	isClosed     bool                   //当前的连接状态
+	ExitChan     chan bool              //告知当前连接已经退出的/停止 channel(油Reader告知Writer退出)
+	msgChan      chan []byte            //无缓冲的管道，用于读、写goroutine之间的消息通信
+	MsgHandler   ziface.IMsgHandle      //消息的管理MsgID和对应的处理业务API关系
 
 }
 
 //初始化连接模块的方法
-func NewConnection(conn *net.TCPConn, connID uint32, msghandle ziface.IMsgHandle) *Connection {
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msghandle ziface.IMsgHandle) *Connection {
 	c := &Connection{
+		TcpServer:  server,
 		Conn:       conn,
 		ConnID:     connID,
 		isClosed:   false,
@@ -32,6 +35,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msghandle ziface.IMsgHandle
 		msgChan:    make(chan []byte),
 		MsgHandler: msghandle,
 	}
+
 	return c
 }
 
@@ -82,10 +86,10 @@ func (c *Connection) StartReader() {
 			msg:  msg,
 		}
 
-		if utils.GlobalObject.WorkerPoolSize>0{
+		if utils.GlobalObject.WorkerPoolSize > 0 {
 			//已经开启了工作池机制，将消息发送给Worker池处理即可
 			c.MsgHandler.SendMsgToTaskQueue(&req)
-		}else {
+		} else {
 			//从路由中，找到注册绑定的conn对应的router调用
 			//根据绑定好的MsgID找到对应处理api业务 执行
 			go c.MsgHandler.DoMsgHandler(&req)
@@ -96,7 +100,7 @@ func (c *Connection) StartReader() {
 //写消息goroutine，专门发送给客户端消息的模块
 func (c *Connection) StartWriter() {
 	fmt.Println("[Writer goroutine is running]")
-	defer fmt.Println("[conn Writer exit!]",c.RemoteAddr().String())
+	defer fmt.Println("[conn Writer exit!]", c.RemoteAddr().String())
 
 	//不断的阻塞的等待channel的消息，进行写给客户端
 	for {
@@ -123,6 +127,10 @@ func (c *Connection) Start() {
 	go c.StartReader()
 	//启动从当前连接写数据的业务
 	go c.StartWriter()
+
+	//按照开发者传递进来的 创建连接之后需要调用的处理业务，执行对应Hook函数
+	c.TcpServer.CallOnConnStart(c)
+
 }
 
 //停止连接，结束当前连接的工作
@@ -133,10 +141,18 @@ func (c *Connection) Stop() {
 		return
 	}
 	c.isClosed = true
+
+	//调用开发者注册的 销毁链接之前 需要执行的业务Hook函数
+	c.TcpServer.CallOnConnStop(c)
+
 	//关闭socket连接
 	c.Conn.Close()
+
 	//告知Writer关闭
 	c.ExitChan <- true
+
+	//将当前连接从ConnMgr中摘除掉
+	c.TcpServer.GetConnMgr().Remove(c)
 	//回收资源
 	close(c.ExitChan)
 	close(c.msgChan)

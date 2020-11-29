@@ -148,9 +148,42 @@ ZinxV0.4全局配置
                 4)总连接个数-->func (connMgr *ConnManager) Len() int
                 5)清理全部的连接-->func (connMgr *ConnManager) ClearConn()
     --将连接管理模块集成到Zinx框架中
+        --将ConnManager加入Server模块中
+            -给server添加一个ConnMgr属性
+            -修改NewServer方法，加入ConnMgr初始化
+            -判断当前的链接数量是否已经超出最大值MaxConn
+        --每次成功与客户端建立连接后-添加链接到ConnManager中
+            -在NewConnection的时候将新的conn加入到ConnMgr中，需要给Connection加入隶属server属性-->给Server提供一个GetConnMgr方法
+        --每次与客户端连接断开后，将连接从ConnManager删除
+            -在Conn.Stop()方法中，将当前的连接从ConnMgr删除即可
+            -当server停止的时候应该清除所有的连接 Stop()方法中加入ConnMgr.ClearConn()
     --给Zinx框架提供 创建连接之后/销毁连接之前 所要处理的一些业务 提供给用户能够注册Hook函数
+        -属性
+            --该Server创建连接之后自动调用Hook函数-->OnConnStart func(conn ziface.IConnection)
+            --该Server销毁连接之前自动调用的Hook函数-->OnConnStop  func(conn ziface.IConnection)
+        -方法
+            --注册OnConnStart钩子函数方法-->func (s *Server)SetOnConnStart(hookFunc func(connection ziface.IConnection))
+            --注册OnConnStop钩子方法-->func (s *Server)SetOnConnStop(hookFunc func(connection ziface.IConnection))
+            --调用OnConnStart钩子函数方法-->func (s *Server)CallOnConnStart(conn  ziface.IConnection)
+            --调用OnConnStop钩子方法-->func (s *Server)CallOnConnStop(conn  ziface.IConnection)
+        -在Conn创建之后调用OnConnStart-->在conn.Start()中调用
+        -在Conn销毁之前调用OnConnStop-->在conn.Stop()中调用    
     --使用ZinxV0.9开发
+        -注册Hook钩子函数:
+        	s.SetOnConnStart(DoConnectionBegin)
+        	s.SetOnConnStop(DoConnectionLost)
 
+11.29
+连接属性配置
+    --给Connection模块添加可以配置属性的功能
+        -属性
+            --连接属性集合map-->property map[string]interface{}
+            --保护连接属性的锁-->propertyLock sync.RWMutex
+        -方法
+            --设置连接属性-->func (c *Connection)SetProperty(key string, value interface{})
+            --获取连接属性-->func (c *Connection)GetProperty(key string)(interface{}, error)
+            --移除连接属性-->func (c *Connection)RemoveProperty(key string)
+    --使用ZinxV1.0开发
 
 
 
