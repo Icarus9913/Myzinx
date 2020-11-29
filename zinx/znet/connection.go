@@ -36,6 +36,9 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgh
 		MsgHandler: msghandle,
 	}
 
+	//将conn加入到ConnManager中
+	c.TcpServer.GetConnMgr().Add(c)
+
 	return c
 }
 
