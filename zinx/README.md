@@ -171,10 +171,5 @@ ZinxV0.4全局配置
     --使用ZinxV0.9开发
         -注册Hook钩子函数:
         	s.SetOnConnStart(DoConnectionBegin)
-        	s.SetOnConnStop(DoConnectionLost)
-
-
-
-   看38集
-     
+        	s.SetOnConnStop(DoConnectionLost)     
  
