@@ -53,7 +53,7 @@ func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 //启动一个Worker工作池(开启工作池的动作只能发生一次，一个zinx框架只能有一个worker工作池)
 func (mh *MsgHandle) StartWorkerPool() {
 	//根据workerPoolSize分别开启Worker，每个Worker用一个go来承载
-	for i := 0; i < int(mh.WorkerPoolSize); i++ {
+	for i := 0; i < int(mh.WorkerPoolSize); i++ {//config.json里10个
 		//一个worker被启动
 		//1、当前的worker对应的channel消息队列 开辟空间 第0个wroker就用第0个channel
 		mh.TaskQueue[i] = make(chan ziface.IRequest, utils.GlobalObject.MaxWorkerTaskLen) //缓存可以设置为最大的1024

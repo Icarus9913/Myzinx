@@ -60,7 +60,7 @@ func main() {
 	//1.创建一个server句柄，使用Zinx的api
 	s := znet.NewServer("[zinx V0.7]") //s返回的是IServer的接口
 
-	//2.注册Hook钩子函数
+	//2.注册Hook钩子函数(只是注册，并未执行，执行在start里)
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
