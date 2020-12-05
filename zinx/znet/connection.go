@@ -89,7 +89,7 @@ func (c *Connection) StartReader() {
 //写消息goroutine，专门发送给客户端消息的模块
 func (c *Connection) StartWriter() {
 	fmt.Println("[Writer goroutine is running]")
-	defer fmt.Println("[conn Writer exit!]",c.RemoteAddr().String())
+	defer fmt.Println("[conn Writer exit!]", c.RemoteAddr().String())
 
 	//不断的阻塞的等待channel的消息，进行写给客户端
 	for {
@@ -101,7 +101,7 @@ func (c *Connection) StartWriter() {
 				return
 			}
 		case <-c.ExitChan:
-			//代表Reader已经推出，此时Writer也要退出
+			//代表Reader已经退出，此时Writer也要退出
 			return
 
 		}
