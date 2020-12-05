@@ -20,8 +20,8 @@ type MsgHandle struct {
 func NewMsgHandle() *MsgHandle {
 	return &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
-		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,                               //从全局配置中获取
 		TaskQueue:      make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize), //队实际与worker量对应
+		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,                               //从全局配置中获取
 	}
 }
 
