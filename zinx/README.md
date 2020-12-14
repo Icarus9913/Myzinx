@@ -188,7 +188,7 @@ ZinxV0.4全局配置
 基于Zinx的服务器应用--MMO多人在线网游
     --协议的定义
     --AOI兴趣点的算法
-        --AOI格子的数据类型
+        --AOI格子的数据类型-Gid
             -属性
                 --格子ID-->GID int
                 --格子的左边边界坐标-->MinX int
@@ -203,18 +203,20 @@ ZinxV0.4全局配置
                 --从格子中删除一个玩家-->func (g *Grid) Remove(playerID int)
                 --得到当前格子中所有的玩家-->func (g *Grid) GetPlayerIDs() (playerIDs []int)
                 --调试使用-打印出格子的基本信息-->func (g *Grid) String() string
-        --AOI管理格子(地图)数据类型
+        --AOI管理格子(地图)数据类型-AOIManager
             -属性
-                --区域的左边界坐标
-                --区域的右边界坐标
-                --X方向格子的数量
-                --区域的上边界坐标
-                --区域的下边界坐标
-                --Y方向格子的数量
-                --当前区域中有哪些格子-->map-key=格子的ID，value=格子对象
+                --区域的左边界坐标-->MinX int
+                --区域的右边界坐标-->MaxX int
+                --X方向格子的数量-->CntsX int
+                --区域的上边界坐标-->MinY int
+                --区域的下边界坐标-->MaxY int
+                --Y方向格子的数量-->CntsY int
+                --当前区域中有哪些格子-->map-key=格子的ID，value=格子对象-->grids map[int]*Grid
             -方法
-                --初始化一个AOI管理区域模块
-                --调试使用--打印当前AOI模块
+                --初始化一个AOI管理区域模块-->func NewAOIManager(minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager
+                --调试使用--打印当前AOI模块-->func (m *AOIManager) String() string
+                --得到每个格子在X轴方向的宽度-->func (m *AOIManager) gridWidth() int
+                --得到每个格子在Y轴方向的长度-->func (m *AOIManager) gridLength() int
                 --添加一个PlayerID到一个格子中
                 --移除一个格子中的PlayerID
                 --通过GID获取全部的PlayerID
@@ -231,6 +233,6 @@ ZinxV0.4全局配置
         -玩家下线
 
 
-   看53集
+   看55集
      
  
