@@ -217,13 +217,14 @@ ZinxV0.4全局配置
                 --调试使用--打印当前AOI模块-->func (m *AOIManager) String() string
                 --得到每个格子在X轴方向的宽度-->func (m *AOIManager) gridWidth() int
                 --得到每个格子在Y轴方向的长度-->func (m *AOIManager) gridLength() int
-                --添加一个PlayerID到一个格子中
-                --移除一个格子中的PlayerID
-                --通过GID获取全部的PlayerID
-                --通过坐标将Player添加到一个格子中
-                --通过坐标把一个Player从一个格子中删除
-                --通过Player坐标得到当前Player周边九宫格内全部PlayerIDs
-                --通过坐标获取对应的玩家所在的GID
+                --根据一个GID得到当前GID的九宫格的GID集合-->func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid)
+                --通过xy横纵轴坐标得到当前的GID格子编号--> func (m *AOIManager) GetGidByPos(x,y float32) int
+                --通过xy横纵坐标得到周边九宫格全部的playerIDs--> func (m *AOIManager) GetPidsByPos(x,y float32) (playerIDs []int)
+                --添加一个PlayerID到一个格子中-->func (m *AOIManager)AddPidToGrid(pID,gID int)
+                --移除一个格子中的PlayerID-->func (m *AOIManager)RemovePidFromGrid(pID,gID int)
+                --通过GID获取全部的PlayerID-->func (m *AOIManager)GetPidsByGid(gID int) (playerIDs []int)
+                --通过坐标将Player添加到一个格子中-->func (m *AOIManager)AddToGridByPos(pID int,x,y float32)
+                --通过坐标把一个Player从一个格子中删除-->func (m *AOIManager)RemoveFromGridbyPos(pID int,x,y float32)
     --数据传输协议Protocol buffer
     --玩家的业务
         -玩家上线
@@ -233,6 +234,6 @@ ZinxV0.4全局配置
         -玩家下线
 
 
-   看55集
+   看60集
      
  文档:https://www.bookstack.cn/read/zinx/643edd794cc82973.md
