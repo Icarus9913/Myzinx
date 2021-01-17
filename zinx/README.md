@@ -226,7 +226,43 @@ ZinxV0.4全局配置
                 --通过坐标将Player添加到一个格子中-->func (m *AOIManager)AddToGridByPos(pID int,x,y float32)
                 --通过坐标把一个Player从一个格子中删除-->func (m *AOIManager)RemoveFromGridbyPos(pID int,x,y float32)
     --数据传输协议Protocol buffer
+        -比较：
+            -json
+                --优势：可读性强
+                --劣势：编解码比较耗时
+                --场景：web领域
+            -xml（基于标签）
+                --优势：
+                --劣势
+                --场景：前端/网页
+            -protobuf
+                --优势：解码速度很快；序列化后体积相比json和xml很小，适合网络传输；支持跨平台多语言；消息格式升级和兼容性好
+                --劣势：可读性不强，传输过程中不是明文，二进制（已经序列化完毕）
+                --场景：后端应用/微服务/服务器
+        -使用protobuf开发的过程：
+            --创建一个.proto文件(定义一些message格式)
+            --将.proto文件进行编译成相对应的.go文件：protoc --proto_path=IMPORT_PATH --go_out=DST_DIR path/to/file.proto
+                1.其中--proto_path指定了.proto文件导包时的路径，可以有多个，如果忽略则默认当前目录
+                2.--go_out指定了生成的go语言代码文件放入的文件夹
+                3.允许使用protoc --go_out=./ *.proto的方式一次性编译多个.proto文件
+                4.编译时，protobuf编译器会把.proto文件编译成.pd.go文件
+                {将当前文件夹下所有proto文件编译至当前文件夹下：protoc --go_out=. *.proto }
+            --定义一个go与protobuf对应的结构体
+            --proto.Marshal进行编码序列化 得到二进制数据data
+            --将data进行传输，或者发送给对方
+            --对方收到data数据，将data通过proto.UnMarshal得到person结构体数据
     --玩家的业务
+        -协议的定义
+        -项目构建
+            --apis：存放基本的用户自定义路由业务，一个msgID对应的一个业务
+            --conf：
+                -zinx.json存放zinx配置文件
+            --pb：
+                -msg.proto原始protobuf协议文件
+                -build.sh编译msg.proto的脚本
+                -msg.pb.go编译生成的go文件(只读)
+            --core：存放核心的功能
+            --main.go：服务器的主入口
         -玩家上线
         -世界聊天
         -上线位置的信息同步(玩家上线广播)
