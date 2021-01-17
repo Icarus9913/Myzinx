@@ -1,6 +1,7 @@
 package core
 
 import (
+	"Myzinx/mmo_game_zinx/pb"
 	"Myzinx/zinx/ziface"
 	"fmt"
 	"github.com/golang/protobuf/proto"
@@ -49,20 +50,20 @@ func NewPlayer(conn ziface.IConnection) *Player {
 	提供一个发送给客户端消息的方法
 	主要是将pb的protobuf数据序列化之后，再调用zinx的SendMsg方法
 */
-func (p *Player)SendMsg(msgId uint32,data proto.Message)  {
+func (p *Player) SendMsg(msgId uint32, data proto.Message) {
 	//将proto Message结构体序列化 转换成二进制
-	msg ,err := proto.Marshal(data)
-	if nil!=err{
-		fmt.Println("marshal msg err:",err)
+	msg, err := proto.Marshal(data)
+	if nil != err {
+		fmt.Println("marshal msg err:", err)
 		return
 	}
 
 	//将二进制文件 通过zinx框架的sendmsg将数据发送给客户端
-	if nil==p.Conn{
+	if nil == p.Conn {
 		fmt.Println("connection in player is nil")
 		return
 	}
-	if err := p.Conn.SendMsg(msgId, msg);nil!=err{
+	if err := p.Conn.SendMsg(msgId, msg); nil != err {
 		fmt.Println("Player SendMsg error!")
 		return
 	}
@@ -70,4 +71,30 @@ func (p *Player)SendMsg(msgId uint32,data proto.Message)  {
 }
 
 //告知客户端玩家Pid，同步已经生成的玩家ID给客户端
+func (p *Player) SyncPid() {
+	//组建MsgID:0的proto数据
+	proto_msg := &pb.SyncPid{
+		Pid: p.Pid,
+	}
+	//将消息发送给客户端
+	p.SendMsg(1, proto_msg)
+}
 
+//广播玩家自己的出生地点
+func (p *Player) BroadCastStartPosition() {
+	//组件MsgID:200的proto数据
+	proto_msg := &pb.BroadCast{
+		Pid: p.Pid,
+		Tp:  2, //Tp2代表广播的位置坐标
+		Data: &pb.BroadCast_P{
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+	//将消息发送给客户端
+	p.SendMsg(200, proto_msg)
+}
